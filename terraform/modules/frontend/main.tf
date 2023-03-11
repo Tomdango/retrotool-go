@@ -7,7 +7,6 @@ resource "aws_amplify_app" "frontend" {
 
   build_spec = <<-EOT
             version: 1
-            appRoot: frontend
             applications:
               - frontend:
                   phases:
@@ -24,6 +23,7 @@ resource "aws_amplify_app" "frontend" {
                   cache:
                     paths:
                       - node_modules/**/*
+                appRoot: frontend
 EOT
 
   custom_rule {
