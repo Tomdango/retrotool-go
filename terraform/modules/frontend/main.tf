@@ -3,6 +3,7 @@ resource "aws_amplify_app" "frontend" {
   name         = "${var.environment}-retrotool-frontend"
   repository   = "https://github.com/Tomdango/retrotool-go"
   access_token = var.gh_token
+  platform     = "WEB_COMPUTE"
 
   build_spec = <<-EOT
             version: 1
@@ -35,6 +36,7 @@ EOT
 resource "aws_amplify_branch" "main" {
   app_id      = aws_amplify_app.frontend.id
   branch_name = "main"
+
 
   enable_basic_auth      = true
   basic_auth_credentials = base64encode("username:password")
