@@ -34,3 +34,10 @@ module "root_domain_certificate" {
 
   wait_for_validation = true
 }
+
+/**
+ * KMS Key for Encrypted Secrets
+ */
+resource "aws_kms_key" "sops_key" {
+  description = "SOPS KMS Key for Encrypted Secrets"
+}
