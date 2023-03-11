@@ -5,24 +5,24 @@ resource "aws_amplify_app" "frontend" {
   access_token = var.gh_token
 
   build_spec = <<-EOT
-version: 1
-applications:
-  - frontend:
-      phases:
-        preBuild:
-          commands:
-            - yarn install
-        build:
-          commands:
-            - yarn build
-      artifacts:
-        baseDirectory: .next
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
-    appRoot: frontend/
+            version: 1
+            applications:
+              - frontend:
+                  phases:
+                    preBuild:
+                      commands:
+                        - yarn install
+                    build:
+                      commands:
+                        - yarn run build
+                  artifacts:
+                    baseDirectory: .next
+                    files:
+                      - '**/*'
+                  cache:
+                    paths:
+                      - node_modules/**/*
+                appRoot: frontend
 EOT
 
   custom_rule {
