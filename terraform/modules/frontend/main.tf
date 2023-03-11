@@ -26,6 +26,11 @@ resource "aws_amplify_app" "frontend" {
                 appRoot: frontend
 EOT
 
+  environment_variables = {
+    "AMPLIFY_MONOREPO_APP_ROOT" = "frontend"
+    "AMPLIFY_DIFF_DEPLOY"       = "false"
+  }
+
   custom_rule {
     source = "/<*>"
     status = "404"
