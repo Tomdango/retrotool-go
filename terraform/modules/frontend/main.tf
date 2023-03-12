@@ -27,8 +27,12 @@ resource "aws_amplify_app" "frontend" {
 EOT
 
   environment_variables = {
-    "AMPLIFY_MONOREPO_APP_ROOT" = "frontend"
-    "AMPLIFY_DIFF_DEPLOY"       = "false"
+    "AMPLIFY_MONOREPO_APP_ROOT"      = "frontend"
+    "AMPLIFY_DIFF_DEPLOY"            = "false"
+    "AWS_AUTH_REGION"                = "eu-west-2"
+    "AWS_AUTH_USER_POOL_ID"          = var.cognito_user_pool_id
+    "AWS_AUTH_USER_CLIENT_ID"        = var.cognito_web_client_id
+    "AWS_AUTH_COOKIE_STORAGE_DOMAIN" = var.domain_name
   }
 
   custom_rule {
