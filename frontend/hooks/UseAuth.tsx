@@ -11,11 +11,11 @@ import {
 
 Amplify.configure({
   Auth: {
-    region: process.env.AWS_AUTH_REGION,
-    userPoolId: process.env.AWS_AUTH_USER_POOL_ID,
-    userPoolWebClientId: process.env.AWS_AUTH_USER_CLIENT_ID,
+    region: process.env.COGNITO_AUTH_REGION,
+    userPoolId: process.env.COGNITO_AUTH_USER_POOL_ID,
+    userPoolWebClientId: process.env.COGNITO_AUTH_USER_CLIENT_ID,
     cookieStorage: {
-      domain: process.env.AWS_AUTH_COOKIE_STORAGE_DOMAIN,
+      domain: process.env.COGNITO_AUTH_COOKIE_STORAGE_DOMAIN,
       path: "/",
       expires: 365,
       sameSite: "strict",
