@@ -1,36 +1,36 @@
 package main
 
 import (
-	"net/http"
-	"os"
+	"context"
+	"log"
 
-	"github.com/Tomdango/retrotool-api-lambda-v1/app"
-	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
-
+	"github.com/Tomdango/retrotool-go/db"
+	"github.com/Tomdango/retrotool-go/server"
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	"github.com/aws/aws-sdk-go-v2/config"
+
+	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 )
 
-func main() {
-	aws_config := &aws.Config{Region: aws.String("eu-west-2")}
-	session, err := session.NewSession(aws_config)
+var ginLambda *ginadapter.GinLambdaV2
 
+func init() {
+	log.Printf("Lambda Cold Start")
+	ginLambda = ginadapter.NewV2(server.NewRouter())
+
+	awsConfig, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("eu-west-2"))
 	if err != nil {
-		panic(err)
+		log.Fatalf("Unable to load SDK config, %v", err)
 	}
 
-	instance := app.App{
-		CognitoClient:   cognito.New(session),
-		UserPoolID:      os.Getenv("COGNITO_USER_POOL_ID"),
-		AppClientID:     os.Getenv("COGNITO_USER_POOL_CLIENT_ID"),
-		AppClientSecret: os.Getenv("COGNITO_USER_POOL_CLIENT_SECRET"),
-	}
+	db.TeamsRepository.Init(awsConfig)
+}
 
-	http.HandleFunc("/users/register", instance.UserRegisterHandler)
-	http.HandleFunc("/users/otp", instance.UserOTPHandler)
-	http.HandleFunc("/users/login", instance.UserLoginHandler)
+func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+	return ginLambda.ProxyWithContext(ctx, req)
+}
 
-	lambda.Start(httpadapter.NewV2(http.DefaultServeMux).ProxyWithContext)
+func main() {
+	lambda.Start(Handler)
 }

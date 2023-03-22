@@ -30,39 +30,66 @@ type LoginResult = {
   message: string;
 };
 
-interface IAuthContext {
+type IAuthContext = AuthState & {
   isLoading: boolean;
-  isAuthenticated: boolean;
-  username: string;
   login: (username: string, password: string) => Promise<LoginResult>;
   logout: () => Promise<LoginResult>;
-}
+};
 
 const AuthContext = createContext<IAuthContext>({
+  isLoggedIn: false,
   isLoading: false,
-  isAuthenticated: false,
-  username: "NOT_INITIALISED",
   login: async () => ({ success: false, message: "NOT_INITIALISED" }),
   logout: async () => ({ success: false, message: "NOT_INITIALISED" }),
 });
 
 export const useAuth = () => useContext(AuthContext);
 
+interface LoggedOutAuthState {
+  isLoggedIn: false;
+}
+
+interface LoggedInAuthState {
+  isLoggedIn: true;
+  details: {
+    username: string;
+    phoneNumber: string;
+    phoneNumberVerified: boolean;
+  };
+  session: {
+    idToken: string;
+    accessToken: string;
+    refreshToken: string;
+  };
+}
+
+type AuthState = LoggedInAuthState | LoggedOutAuthState;
+
 const useAuthProvider = (): IAuthContext => {
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState("");
+  const [authState, setAuthState] = useState<AuthState>({ isLoggedIn: false });
 
   useEffect(() => {
     Auth.currentAuthenticatedUser()
       .then((result) => {
-        setUsername(result.username);
-        setIsAuthenticated(true);
         setIsLoading(false);
+        console.log(result);
+        setAuthState({
+          isLoggedIn: true,
+          details: {
+            username: result.username,
+            phoneNumber: result.attributes.phone_number,
+            phoneNumberVerified: result.attributes.phone_number_verified,
+          },
+          session: {
+            accessToken: result.signInUserSession.accessToken.jwtToken,
+            refreshToken: result.signInUserSession.refreshToken.jwtToken,
+            idToken: result.signInUserSession.idToken.jwtToken,
+          },
+        });
       })
       .catch(() => {
-        setUsername("");
-        setIsAuthenticated(false);
+        setAuthState({ isLoggedIn: false });
         setIsLoading(false);
       });
   }, []);
@@ -70,8 +97,20 @@ const useAuthProvider = (): IAuthContext => {
   const login = async (username: string, password: string) => {
     try {
       const result = await Auth.signIn(username, password);
-      setUsername(result.username);
-      setIsAuthenticated(true);
+      setAuthState({
+        isLoggedIn: true,
+        details: {
+          username: result.username,
+          phoneNumber: result.attributes.phone_number,
+          phoneNumberVerified: result.attributes.phone_number_verified,
+        },
+        session: {
+          accessToken: result.signInUserSession.accessToken.jwtToken,
+          refreshToken: result.signInUserSession.refreshToken.jwtToken,
+          idToken: result.signInUserSession.idToken.jwtToken,
+        },
+      });
+      console.log(result);
       return { success: true, message: "" };
     } catch (error) {
       console.error(error);
@@ -85,8 +124,7 @@ const useAuthProvider = (): IAuthContext => {
   const logout = async () => {
     try {
       await Auth.signOut();
-      setUsername("");
-      setIsAuthenticated(false);
+      setAuthState({ isLoggedIn: false });
       return { success: true, message: "" };
     } catch (error) {
       return {
@@ -97,9 +135,8 @@ const useAuthProvider = (): IAuthContext => {
   };
 
   return {
+    ...authState,
     isLoading,
-    isAuthenticated,
-    username,
     login,
     logout,
   };

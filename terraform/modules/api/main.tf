@@ -28,6 +28,12 @@ module "api_lambda_function" {
     COGNITO_USER_POOL_ID            = var.cognito_user_pool_id
     COGNITO_USER_POOL_CLIENT_ID     = var.cognito_user_pool_client_id
     COGNITO_USER_POOL_CLIENT_SECRET = var.cognito_user_pool_client_secret
+
+    DB_HOST     = var.db_host
+    DB_PORT     = var.db_port
+    DB_USERNAME = var.db_username
+    DB_PASSWORD = var.db_password
+    DB_NAME     = var.db_name
   }
 
   allowed_triggers = {
@@ -36,6 +42,22 @@ module "api_lambda_function" {
       source_arn = "${module.api_gateway.apigatewayv2_api_execution_arn}/*/*"
     }
   }
+
+  attach_policy_json = true
+  policy_json        = <<-EOT
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": ["dynamodb:*"],
+                "Resource": ["*"]
+            }
+        ]
+    }
+  EOT
+
+  vpc_subnet_ids = var.private_subnets
 }
 
 /**
@@ -60,6 +82,8 @@ module "api_gateway" {
   disable_execute_api_endpoint = true
 
   integrations = {
+
+
     "POST /users/register" = {
       lambda_arn             = module.api_lambda_function.lambda_function_arn
       payload_format_version = "2.0"
@@ -77,6 +101,32 @@ module "api_gateway" {
       payload_format_version = "2.0"
       timeout_milliseconds   = 12000
     }
+
+    "POST /teams/create" = {
+      lambda_arn             = module.api_lambda_function.lambda_function_arn
+      payload_format_version = "2.0"
+      timeout_milliseconds   = 12000
+      authorization_type     = "JWT"
+      authorizer_id          = aws_apigatewayv2_authorizer.api_auth.id
+    }
+
+    "ANY /v1/{proxy+}" = {
+      lambda_arn             = module.api_lambda_function.lambda_function_arn
+      payload_format_version = "2.0"
+      timeout_milliseconds   = 12000
+    }
+  }
+}
+
+resource "aws_apigatewayv2_authorizer" "api_auth" {
+  api_id           = module.api_gateway.apigatewayv2_api_id
+  authorizer_type  = "JWT"
+  identity_sources = ["$request.header.Authorization"]
+  name             = "api-cognito-auth"
+
+  jwt_configuration {
+    audience = [var.cognito_user_pool_web_client_id]
+    issuer   = "https://${var.cognito_user_pool_endpoint}"
   }
 }
 

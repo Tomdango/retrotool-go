@@ -32,7 +32,7 @@ const LoginPage: React.FC = () => {
       setStatus(LoginStatus.SUCCESS);
       router.prefetch("/");
       setTimeout(() => {
-        router.replace("/");
+        // router.replace("/");
       }, 3000);
     } else {
       setStatus(LoginStatus.FAILED);
@@ -61,13 +61,15 @@ const LoginPage: React.FC = () => {
                 <b>Login Failed.</b> Check your details and try again.
               </p>
             </div>
+
             <div
               className={clsx("toast toast--success m-0", {
                 "u-none": status !== LoginStatus.SUCCESS,
               })}
             >
               <p>
-                <b>Successfully logged in.</b> Welcome back {auth.username}!
+                <b>Successfully logged in.</b> Welcome back{" "}
+                {auth.isLoggedIn ? auth.details.username : ""}!
               </p>
             </div>
             <form onSubmit={handleSubmit}>
