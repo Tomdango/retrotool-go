@@ -118,3 +118,28 @@ resource "aws_cognito_user_pool_domain" "cognito_domain" {
   domain       = "${var.environment}-retrotool"
   user_pool_id = aws_cognito_user_pool.user_pool.id
 }
+
+resource "aws_ssm_parameter" "cognito_user_pool_endpoint" {
+  name = "/${var.environment}/cognito/user_pool_endpoint"
+  type = "SecureString"
+  value = aws_cognito_user_pool.user_pool.endpoint
+}
+
+resource "aws_ssm_parameter" "cognito_user_pool_id" {
+  name = "/${var.environment}/cognito/user_pool_id"
+  type = "SecureString"
+  value = aws_cognito_user_pool.user_pool.id
+}
+
+resource "aws_ssm_parameter" "cognito_user_pool_client_id" {
+  name = "/${var.environment}/cognito/user_pool_client_id"
+  type = "SecureString"
+  value = aws_cognito_user_pool_client.client.id
+}
+
+resource "aws_ssm_parameter" "cognito_user_pool_client_secret" {
+  name = "/${var.environment}/cognito/user_pool_client_secret"
+  type = "SecureString"
+  value = aws_cognito_user_pool_client.client.client_secret
+}
+

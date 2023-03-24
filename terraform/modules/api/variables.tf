@@ -28,17 +28,6 @@ variable "cognito_user_pool_id" {
   description = "Cognito User Pool ID"
 }
 
-variable "cognito_user_pool_client_id" {
-  type        = string
-  description = "Cognito User Pool Client ID"
-}
-
-variable "cognito_user_pool_client_secret" {
-  type        = string
-  sensitive   = true
-  description = "Cognito User Pool Client Secret"
-}
-
 variable "cognito_user_pool_web_client_id" {
   type        = string
   description = "Cognito User Pool Web Client ID"
@@ -51,24 +40,4 @@ variable "cognito_user_pool_endpoint" {
 
 variable "private_subnets" {
   type = list(string)
-}
-
-variable "db_host" {
-  type = string
-}
-
-variable "db_port" {
-  type = string
-}
-
-variable "db_username" {
-  type = string
-}
-
-variable "db_password" {
-  type = string
-}
-
-variable "db_name" {
-  type = string
 }

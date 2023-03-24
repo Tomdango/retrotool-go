@@ -7,7 +7,6 @@ resource "aws_s3_object" "api_lambda_zip" {
   source = "${var.build_dir}/api.zip"
 }
 
-
 module "api_lambda_function" {
   source = "terraform-aws-modules/lambda/aws"
 
@@ -22,18 +21,6 @@ module "api_lambda_function" {
   s3_existing_package = {
     bucket = var.artifact_s3_bucket_id
     key    = aws_s3_object.api_lambda_zip.id
-  }
-
-  environment_variables = {
-    COGNITO_USER_POOL_ID            = var.cognito_user_pool_id
-    COGNITO_USER_POOL_CLIENT_ID     = var.cognito_user_pool_client_id
-    COGNITO_USER_POOL_CLIENT_SECRET = var.cognito_user_pool_client_secret
-
-    DB_HOST     = var.db_host
-    DB_PORT     = var.db_port
-    DB_USERNAME = var.db_username
-    DB_PASSWORD = var.db_password
-    DB_NAME     = var.db_name
   }
 
   allowed_triggers = {
@@ -82,25 +69,31 @@ module "api_gateway" {
   disable_execute_api_endpoint = true
 
   integrations = {
-
-
-    "POST /users/register" = {
+    "POST /auth/login" = {
       lambda_arn             = module.api_lambda_function.lambda_function_arn
       payload_format_version = "2.0"
       timeout_milliseconds   = 12000
     }
 
-    "POST /users/otp" = {
+    "POST /auth/register" = {
       lambda_arn             = module.api_lambda_function.lambda_function_arn
       payload_format_version = "2.0"
       timeout_milliseconds   = 12000
     }
 
-    "POST /users/login" = {
+    "POST /auth/confirmation" = {
       lambda_arn             = module.api_lambda_function.lambda_function_arn
       payload_format_version = "2.0"
       timeout_milliseconds   = 12000
     }
+
+    "GET /teams" = {
+      lambda_arn             = module.api_lambda_function.lambda_function_arn
+      payload_format_version = "2.0"
+      timeout_milliseconds   = 12000
+      authorization_type     = "JWT"
+      authorizer_id          = aws_apigatewayv2_authorizer.api_auth.id
+    } 
 
     "POST /teams/create" = {
       lambda_arn             = module.api_lambda_function.lambda_function_arn
@@ -110,10 +103,12 @@ module "api_gateway" {
       authorizer_id          = aws_apigatewayv2_authorizer.api_auth.id
     }
 
-    "ANY /v1/{proxy+}" = {
+    "GET /teams/{teamID}" = {
       lambda_arn             = module.api_lambda_function.lambda_function_arn
       payload_format_version = "2.0"
       timeout_milliseconds   = 12000
+      authorization_type     = "JWT"
+      authorizer_id          = aws_apigatewayv2_authorizer.api_auth.id
     }
   }
 }

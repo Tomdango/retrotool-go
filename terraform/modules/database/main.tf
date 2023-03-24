@@ -18,6 +18,7 @@ module "aurora_postgresql_v2" {
   engine_mode       = "provisioned"
   engine_version    = data.aws_rds_engine_version.postgresql.version
   storage_encrypted = true
+  database_name = "retrotool"
 
   vpc_id                = var.vpc_id
   subnets               = var.database_subnets
@@ -40,4 +41,34 @@ module "aurora_postgresql_v2" {
   instances = {
     one = {}
   }
+}
+
+resource "aws_ssm_parameter" "db_name" {
+  name  = "/${var.environment}/db/name"
+  type  = "SecureString"
+  value = module.aurora_postgresql_v2.cluster_database_name
+}
+
+resource "aws_ssm_parameter" "db_endpoint" {
+  name  = "/${var.environment}/db/endpoint"
+  type  = "SecureString"
+  value = module.aurora_postgresql_v2.cluster_endpoint
+}
+
+resource "aws_ssm_parameter" "db_port" {
+  name  = "/${var.environment}/db/port"
+  type  = "SecureString"
+  value = module.aurora_postgresql_v2.cluster_port
+}
+
+resource "aws_ssm_parameter" "db_username" {
+  name  = "/${var.environment}/db/username"
+  type  = "SecureString"
+  value = module.aurora_postgresql_v2.cluster_master_username
+}
+
+resource "aws_ssm_parameter" "db_password" {
+  name  = "/${var.environment}/db/password"
+  type  = "SecureString"
+  value = module.aurora_postgresql_v2.cluster_master_password
 }
